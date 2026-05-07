@@ -55,7 +55,7 @@ mkdir -p applications_on_qline/Q_oblivious_transfer/log
 echo "Setup complete."
 """
 
-[tasks.run]
+[tasks.demo]
 description = "Launch the OT demo in Zellij"
 depends = ["setup"]
 run = "zellij --layout demo-layout.kdl"
