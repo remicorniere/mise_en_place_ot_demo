@@ -1,0 +1,43 @@
+layout {
+    default_tab_template {
+        pane size=1 borderless=true {
+            plugin location="zellij:tab-bar"
+        }
+        children
+        pane size=2 borderless=true {
+            plugin location="zellij:status-bar"
+        }
+    }
+    tab name="Demo OT" {
+        pane split_direction="vertical" {
+            pane split_direction="horizontal" {
+                pane name="Sim Alice" command="hw_sim/target/release/simulator" {
+                    args "--config-path" "hw_sim/config_files/alice/hw_sim_config.json"
+                }
+                pane name="Sim Bob" command="hw_sim/target/release/simulator" {
+                    args "--config-path" "hw_sim/config_files/bob/hw_sim_config.json"
+                }
+            }
+            pane split_direction="horizontal" {
+                pane name="GC Alice" command="kiwi_hw_control/gc/target/release/gc_alice" {
+                    args "-c" "hw_sim/config_files/alice/gc_config.json"
+                }
+                pane name="GC Bob" command="kiwi_hw_control/gc/target/release/gc_bob" {
+                    args "-c" "hw_sim/config_files/bob/gc_config.json"
+                }
+            }
+            pane split_direction="horizontal" {
+                pane name="OT Bob (Server)" {
+                    cwd "applications_on_qline/Q_oblivious_transfer"
+                    command "python"
+                    args "server_run.py" "-m" "hwsim" "-n" "125" "-b" "32768" "-p" "../../hw_sim/config_files/bob/ot_config.json" "-c" "../../hw_sim/config_files/ot_network.json" "--loglive"
+                }
+                pane name="OT Alice (Client)" {
+                    cwd "applications_on_qline/Q_oblivious_transfer"
+                    command "python"
+                    args "client_run.py" "-m" "hwsim" "-n" "125" "-b" "32768" "-p" "../../hw_sim/config_files/alice/ot_config.json" "-c" "../../hw_sim/config_files/ot_network.json" "--loglive"
+                }
+            }
+        }
+    }
+}

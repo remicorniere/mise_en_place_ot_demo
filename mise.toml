@@ -1,0 +1,37 @@
+[tools]
+rust = "stable"
+python = "3.12"
+zellij = "0.44.2"
+
+[tasks.setup]
+description = "Install dependencies and compile Rust projects"
+run = """
+#!/bin/bash
+set -e
+echo "Checking projects..."
+for proj in kiwi_hw_control applications_on_qline hw_sim; do
+    if [ ! -d "$proj" ]; then
+        echo "Error: $proj directory not found."
+        exit 1
+    fi
+done
+
+echo "Installing Python dependencies..."
+pip install numpy scipy pandas ldpc
+
+echo "Compiling hw_sim..."
+(cd hw_sim && cargo build --release)
+
+echo "Compiling kiwi_hw_control/gc (alice and bob binaries)..."
+(cd kiwi_hw_control/gc && cargo build --release)
+
+echo "Ensuring log directory exists for OT app..."
+mkdir -p applications_on_qline/Q_oblivious_transfer/log
+
+echo "Setup complete."
+"""
+
+[tasks.run]
+description = "Launch the OT demo in Zellij"
+depends_on = ["setup"]
+run = "zellij --layout demo-layout.kdl"
