@@ -28,35 +28,27 @@ if [ -f /etc/os-release ]; then
     esac
 fi
 
-# 2. Clonage des projets si absents (HTTPS pour éviter les soucis de clés SSH)
+# 2. Clonage des projets si absents
 echo "Checking/Cloning projects..."
 [ ! -d "kiwi_hw_control" ] && git clone https://github.com/Veriqloud/kiwi_hw_control.git
 [ ! -d "applications_on_qline" ] && git clone https://github.com/Veriqloud/applications_on_qline.git
 [ ! -d "hw_sim" ] && git clone https://github.com/Veriqloud/hw_sim.git
 
-# 3. Patch Cargo pour hw_sim (rediriger SSH vers le local)
-echo "Patching hw_sim to use local kiwi_hw_control instead of SSH..."
+# 3. Remplacement direct de la dépendance SSH par le chemin local
+echo "Redirecting hw_sim dependencies to local kiwi_hw_control..."
 if [ -f "hw_sim/Cargo.toml" ]; then
-    # On ajoute le patch pour l'URL SSH si pas déjà présent
-    if ! grep -q "\\[patch.'ssh://git@github.com/Veriqloud/kiwi_hw_control.git'\\]" hw_sim/Cargo.toml; then
-        cat >> hw_sim/Cargo.toml <<EOF
-
-[patch."ssh://git@github.com/Veriqloud/kiwi_hw_control.git"]
-gc = { path = "../kiwi_hw_control/gc" }
-comm = { path = "../kiwi_hw_control/comm" }
-EOF
-        echo "Patch applied to hw_sim/Cargo.toml"
-    else
-        echo "Patch already present in hw_sim/Cargo.toml"
-    fi
+    # On remplace la ligne git ssh par un chemin local
+    # On utilise | comme délimiteur pour sed car l'URL contient des slashes
+    sed -i 's|gc = { git = "ssh://git@github.com/Veriqloud/kiwi_hw_control.git", branch = "master" }|gc = { path = "../kiwi_hw_control/gc" }|' hw_sim/Cargo.toml
+    
+    # On supprime le Cargo.lock pour forcer Cargo à recalculer les dépendances avec le chemin local
+    rm -f hw_sim/Cargo.lock
+    echo "Dependency redirected in hw_sim/Cargo.toml and Cargo.lock removed."
 fi
 
 # 4. Setup Python avec uv et venv
 echo "Setting up Python virtual environment with uv..."
-if [ ! -d ".venv" ]; then
-    uv venv
-fi
-# On utilise 'uv pip' pour installer dans le venv local
+[ ! -d ".venv" ] && uv venv
 uv pip install numpy scipy pandas ldpc
 
 # 5. Compilation Rust
