@@ -19,22 +19,22 @@ layout {
                 }
             }
             pane split_direction="horizontal" {
-                pane name="GC Alice" command="kiwi_hw_control/gc/target/release/gc_alice" {
+                pane name="GC Alice" command="kiwi_hw_control/gc/target/release/alice" {
                     args "-c" "hw_sim/config_files/alice/gc_config.json"
                 }
-                pane name="GC Bob" command="kiwi_hw_control/gc/target/release/gc_bob" {
+                pane name="GC Bob" command="kiwi_hw_control/gc/target/release/bob" {
                     args "-c" "hw_sim/config_files/bob/gc_config.json"
                 }
             }
             pane split_direction="horizontal" {
                 pane name="OT Bob (Server)" {
                     cwd "applications_on_qline/Q_oblivious_transfer"
-                    command "python"
+                    command "../../.venv/bin/python"
                     args "server_run.py" "-m" "hwsim" "-n" "125" "-b" "32768" "-p" "../../hw_sim/config_files/bob/ot_config.json" "-c" "../../hw_sim/config_files/ot_network.json" "--loglive"
                 }
                 pane name="OT Alice (Client)" {
                     cwd "applications_on_qline/Q_oblivious_transfer"
-                    command "python"
+                    command "../../.venv/bin/python"
                     args "client_run.py" "-m" "hwsim" "-n" "125" "-b" "32768" "-p" "../../hw_sim/config_files/alice/ot_config.json" "-c" "../../hw_sim/config_files/ot_network.json" "--loglive"
                 }
             }

@@ -2,30 +2,54 @@
 rust = "stable"
 python = "3.12"
 zellij = "0.44.2"
+uv = "latest"
 
 [tasks.setup]
-description = "Install dependencies and compile Rust projects"
+description = "Install system deps, clone projects, setup venv and compile"
 run = """
 #!/bin/bash
 set -e
-echo "Checking projects..."
-for proj in kiwi_hw_control applications_on_qline hw_sim; do
-    if [ ! -d "$proj" ]; then
-        echo "Error: $proj directory not found."
-        exit 1
-    fi
-done
 
-echo "Installing Python dependencies..."
-pip install numpy scipy pandas ldpc
+# 1. Détection de l'OS et installation des dépendances système
+if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    case "$ID" in
+        ubuntu|debian)
+            echo "Detected $ID. Installing system dependencies..."
+            sudo apt update && sudo apt install -y build-essential pkg-config libssl-dev git
+            ;;
+        fedora)
+            echo "Detected Fedora. Installing system dependencies..."
+            sudo dnf groupinstall -y "Development Tools" && sudo dnf install -y openssl-devel pkgconf-pkg-config git
+            ;;
+        *)
+            echo "Unsupported OS: $ID. Please install build-essential, pkg-config, and openssl-dev manually."
+            ;;
+    esac
+fi
 
+# 2. Clonage des projets si absents (HTTPS pour éviter les soucis de clés SSH)
+echo "Checking/Cloning projects..."
+[ ! -d "kiwi_hw_control" ] && git clone https://github.com/Veriqloud/kiwi_hw_control.git
+[ ! -d "applications_on_qline" ] && git clone https://github.com/Veriqloud/applications_on_qline.git
+[ ! -d "hw_sim" ] && git clone https://github.com/Veriqloud/hw_sim.git
+
+# 3. Setup Python avec uv et venv
+echo "Setting up Python virtual environment with uv..."
+if [ ! -d ".venv" ]; then
+    uv venv
+fi
+# On utilise 'uv pip' pour installer dans le venv local
+uv pip install numpy scipy pandas ldpc
+
+# 4. Compilation Rust
 echo "Compiling hw_sim..."
 (cd hw_sim && cargo build --release)
 
 echo "Compiling kiwi_hw_control/gc (alice and bob binaries)..."
 (cd kiwi_hw_control/gc && cargo build --release)
 
-echo "Ensuring log directory exists for OT app..."
+# 5. Préparation logs
 mkdir -p applications_on_qline/Q_oblivious_transfer/log
 
 echo "Setup complete."
@@ -33,5 +57,5 @@ echo "Setup complete."
 
 [tasks.run]
 description = "Launch the OT demo in Zellij"
-depends_on = ["setup"]
+depends = ["setup"]
 run = "zellij --layout demo-layout.kdl"
