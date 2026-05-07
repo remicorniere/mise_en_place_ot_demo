@@ -11,31 +11,35 @@ layout {
     tab name="Demo OT" {
         pane split_direction="vertical" {
             pane split_direction="horizontal" {
-                pane name="Sim Alice" command="hw_sim/target/release/simulator" {
-                    args "--config-path" "hw_sim/config_files/alice/hw_sim_config.json"
+                pane name="Sim Alice" {
+                    command "bash"
+                    args "-c" "echo 'Starting Sim Alice...'; hw_sim/target/release/simulator --config-path hw_sim/config_files/alice/hw_sim_config.json"
                 }
-                pane name="Sim Bob" command="hw_sim/target/release/simulator" {
-                    args "--config-path" "hw_sim/config_files/bob/hw_sim_config.json"
+                pane name="Sim Bob" {
+                    command "bash"
+                    args "-c" "sleep 1; echo 'Starting Sim Bob...'; hw_sim/target/release/simulator --config-path hw_sim/config_files/bob/hw_sim_config.json"
                 }
             }
             pane split_direction="horizontal" {
-                pane name="GC Alice" command="kiwi_hw_control/gc/target/release/alice" {
-                    args "-c" "hw_sim/config_files/alice/gc_config.json"
+                pane name="GC Alice" {
+                    command "bash"
+                    args "-c" "sleep 2; echo 'Starting GC Alice...'; kiwi_hw_control/gc/target/release/alice -c hw_sim/config_files/alice/gc_config.json"
                 }
-                pane name="GC Bob" command="kiwi_hw_control/gc/target/release/bob" {
-                    args "-c" "hw_sim/config_files/bob/gc_config.json"
+                pane name="GC Bob" {
+                    command "bash"
+                    args "-c" "sleep 3; echo 'Starting GC Bob...'; kiwi_hw_control/gc/target/release/bob -c hw_sim/config_files/bob/gc_config.json"
                 }
             }
             pane split_direction="horizontal" {
                 pane name="OT Bob (Server)" {
                     cwd "applications_on_qline/Q_oblivious_transfer"
-                    command "../../.venv/bin/python"
-                    args "server_run.py" "-m" "hwsim" "-n" "125" "-b" "32768" "-p" "../../hw_sim/config_files/bob/ot_config.json" "-c" "../../hw_sim/config_files/ot_network.json" "--loglive"
+                    command "bash"
+                    args "-c" "sleep 4; echo 'Starting OT Bob...'; ../../.venv/bin/python server_run.py -m hwsim -n 125 -b 32768 -p ../../hw_sim/config_files/bob/ot_config.json -c ../../hw_sim/config_files/ot_network.json --loglive"
                 }
                 pane name="OT Alice (Client)" {
                     cwd "applications_on_qline/Q_oblivious_transfer"
-                    command "../../.venv/bin/python"
-                    args "client_run.py" "-m" "hwsim" "-n" "125" "-b" "32768" "-p" "../../hw_sim/config_files/alice/ot_config.json" "-c" "../../hw_sim/config_files/ot_network.json" "--loglive"
+                    command "bash"
+                    args "-c" "sleep 5; echo 'Starting OT Alice...'; ../../.venv/bin/python client_run.py -m hwsim -n 125 -b 32768 -p ../../hw_sim/config_files/alice/ot_config.json -c ../../hw_sim/config_files/ot_network.json --loglive"
                 }
             }
         }
