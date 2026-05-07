@@ -34,7 +34,24 @@ echo "Checking/Cloning projects..."
 [ ! -d "applications_on_qline" ] && git clone https://github.com/Veriqloud/applications_on_qline.git
 [ ! -d "hw_sim" ] && git clone https://github.com/Veriqloud/hw_sim.git
 
-# 3. Setup Python avec uv et venv
+# 3. Patch Cargo pour hw_sim (rediriger SSH vers le local)
+echo "Patching hw_sim to use local kiwi_hw_control instead of SSH..."
+if [ -f "hw_sim/Cargo.toml" ]; then
+    # On ajoute le patch pour l'URL SSH si pas déjà présent
+    if ! grep -q "\\[patch.'ssh://git@github.com/Veriqloud/kiwi_hw_control.git'\\]" hw_sim/Cargo.toml; then
+        cat >> hw_sim/Cargo.toml <<EOF
+
+[patch."ssh://git@github.com/Veriqloud/kiwi_hw_control.git"]
+gc = { path = "../kiwi_hw_control/gc" }
+comm = { path = "../kiwi_hw_control/comm" }
+EOF
+        echo "Patch applied to hw_sim/Cargo.toml"
+    else
+        echo "Patch already present in hw_sim/Cargo.toml"
+    fi
+fi
+
+# 4. Setup Python avec uv et venv
 echo "Setting up Python virtual environment with uv..."
 if [ ! -d ".venv" ]; then
     uv venv
@@ -42,14 +59,14 @@ fi
 # On utilise 'uv pip' pour installer dans le venv local
 uv pip install numpy scipy pandas ldpc
 
-# 4. Compilation Rust
+# 5. Compilation Rust
 echo "Compiling hw_sim..."
 (cd hw_sim && cargo build --release)
 
 echo "Compiling kiwi_hw_control/gc (alice and bob binaries)..."
 (cd kiwi_hw_control/gc && cargo build --release)
 
-# 5. Préparation logs
+# 6. Préparation logs
 mkdir -p applications_on_qline/Q_oblivious_transfer/log
 
 echo "Setup complete."
