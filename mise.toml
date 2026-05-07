@@ -5,7 +5,7 @@ zellij = "0.44.2"
 uv = "latest"
 
 [tasks.setup]
-description = "Install system deps, clone projects, setup venv and compile"
+description = "Install system deps, clone projects at correct version, setup venv and compile"
 run = """
 #!/bin/bash
 set -e
@@ -28,17 +28,28 @@ if [ -f /etc/os-release ]; then
     esac
 fi
 
-# 2. Clonage des projets si absents
+# 2. Clonage et gestion des versions
 echo "Checking/Cloning projects..."
-[ ! -d "kiwi_hw_control" ] && git clone https://github.com/Veriqloud/kiwi_hw_control.git
-[ ! -d "applications_on_qline" ] && git clone https://github.com/Veriqloud/applications_on_qline.git
-[ ! -d "hw_sim" ] && git clone https://github.com/Veriqloud/hw_sim.git
 
-# 3. Remplacement direct de la dépendance SSH par le chemin local
+# Projets nécessitant la version spécifique 'forumquantiquedefense'
+for proj in kiwi_hw_control hw_sim; do
+    if [ ! -d "$proj" ]; then
+        git clone https://github.com/Veriqloud/$proj.git
+    fi
+    echo "Setting $proj to version 'forumquantiquedefense'..."
+    (cd $proj && git fetch origin && git checkout forumquantiquedefense)
+done
+
+# Projet OT (reste sur la branche par défaut/master)
+if [ ! -d "applications_on_qline" ]; then
+    echo "Cloning applications_on_qline (default branch)..."
+    git clone https://github.com/Veriqloud/applications_on_qline.git
+fi
+
+# 3. Patch Cargo pour hw_sim (rediriger SSH vers le local)
 echo "Redirecting hw_sim dependencies to local kiwi_hw_control..."
 if [ -f "hw_sim/Cargo.toml" ]; then
     # On remplace la ligne git ssh par un chemin local
-    # On utilise | comme délimiteur pour sed car l'URL contient des slashes
     sed -i 's|gc = { git = "ssh://git@github.com/Veriqloud/kiwi_hw_control.git", branch = "master" }|gc = { path = "../kiwi_hw_control/gc" }|' hw_sim/Cargo.toml
     
     # On supprime le Cargo.lock pour forcer Cargo à recalculer les dépendances avec le chemin local
