@@ -1,43 +1,67 @@
-# Mise en place Oblivious Transfer demo
+# Oblivious Transfer Demo Setup
 
-Scripts to setup an environment to be able to run the Oblivious Transfer (OT) demo. 
-This project uses [mise](https://mise.jdx.dev/) to manage tool versions (Rust, Python, Zellij, uv) and automate the setup of multiple interconnected projects.
+This project provides a fully automated environment to run the VeriQloud Oblivious Transfer (OT) demo using [mise](https://mise.jdx.dev/). It manages multiple projects, languages (Rust, Python), and real-time log visualization with [Zellij](https://zellij.dev/).
 
 ## Prerequisites
 
-- **Linux** (Ubuntu/Debian or Fedora recommended)
-- **mise** installed on your system. [Installation guide](https://mise.jdx.dev/getting-started.html)
-- **sudo** privileges (required once to install system dependencies like `build-essential` and `libssl-dev`)
+- **Linux** (Ubuntu/Debian or Fedora recommended).
+- **mise** installed. [Follow the installation guide](https://mise.jdx.dev/getting-started.html).
+- **sudo** privileges (required only once to install system dependencies like `build-essential` and `libssl-dev`).
+
+### Important: mise shell hook
+To benefit from the **automatic environment activation** (where your terminal automatically uses the correct Python version and virtual environment when you enter this directory), ensure you have configured the `mise` shell hook.
+
+Add the following to your shell configuration (e.g., `~/.bashrc` or `~/.zshrc`):
+```bash
+# For Bash
+eval "$(mise activate bash)"
+# For Zsh
+eval "$(mise activate zsh)"
+```
 
 ## Quick Start
 
-1. **Clone this repository** (if you haven't already):
+1. **Clone this repository**:
    ```bash
    git clone <this-repo-url>
    cd mise_en_place_ot_demo
    ```
 
-2. **Install tools and setup the environment**:
-   This command will install the required versions of Rust, Python, Zellij, and uv, then it will install system dependencies, clone the sub-projects, and compile the Rust binaries.
+1(bis). **Run the full setup** (optional: the next step will run this too anyway):
+   This command installs system dependencies (prompts for sudo), clones the sub-projects at the correct version (`forumquantiquedefense`), patches known bugs, and compiles everything.
    ```bash
-   mise install
    mise run setup
    ```
 
-3. **Run the demo**:
-   This will launch a [Zellij](https://zellij.dev/) session with all components (Simulator, GC, and OT Application) running in separate panes for real-time log viewing.
+2. **Launch the demo**:
+   This opens a Zellij session with all components starting in order (Simulator -> GC -> OT App) with a 1-second delay between each.
    ```bash
+   # Normal run (Error logs only)
    mise demo
+
+   # Debug run (Detailed logs in all panes)
+   mise demo_debug
    ```
 
-## Project Structure
+## Manual Usage & Development
 
-The setup automatically manages the following projects:
-- `hw_sim`: Quantum hardware simulator.
+If you prefer to run or debug components manually, the environment is pre-configured for you:
+
+- **Automatic venv**: Once you enter the directory, your `python` command automatically points to the local `.venv`. You can run Python scripts directly:
+  ```bash
+  python applications_on_qline/Q_oblivious_transfer/server_run.py ...
+  ```
+- **Rust Toolchain**: The correct version of Rust is automatically active. You can go into any sub-folder and run `cargo build` or `cargo test`.
+
+## Project Components
+
+The setup automatically manages and patches the following:
+- `hw_sim`: Quantum hardware simulator (specifically the `forumquantiquedefense` version).
 - `kiwi_hw_control`: Hardware control layer (specifically the `gc` module).
-- `applications_on_qline`: The Oblivious Transfer application.
+- `applications_on_qline`: The Oblivious Transfer application layer.
 
 ## Troubleshooting
 
-- **System dependencies**: If you are not on Ubuntu or Fedora, the `setup` task might fail to install system libraries. Please manually install `build-essential`, `pkg-config`, `openssl-dev`, and `git`.
-- **Zellij Layout**: The demo is configured to run in a Zellij session. If you prefer running without Zellij, you will need to manually execute the commands defined in `demo-layout.kdl`.
+- **Permissions**: If the `setup` task fails during system dependency installation, ensure you have `sudo` access.
+- **IPC Errors**: If the simulator logs `failed to fill whole buffer`, it usually means the `gc` component crashed or isn't running. Use `mise demo_debug` to see more details.
+- **Manual Cleanup**: To reset the environment completely, you can delete the sub-folders and the `.venv` directory, then run `mise run setup` again.
