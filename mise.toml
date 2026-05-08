@@ -30,8 +30,6 @@ fi
 
 # 2. Clonage et gestion des versions
 echo "Checking/Cloning projects..."
-
-# Projets nécessitant la version spécifique 'forumquantiquedefense'
 for proj in kiwi_hw_control hw_sim; do
     if [ ! -d "$proj" ]; then
         git clone https://github.com/Veriqloud/$proj.git
@@ -40,36 +38,46 @@ for proj in kiwi_hw_control hw_sim; do
     (cd $proj && git fetch origin && git checkout forumquantiquedefense)
 done
 
-# Projet OT (reste sur la branche par défaut/master)
 if [ ! -d "applications_on_qline" ]; then
-    echo "Cloning applications_on_qline (default branch)..."
     git clone https://github.com/Veriqloud/applications_on_qline.git
 fi
 
-# 3. Patch Cargo pour hw_sim (rediriger SSH vers le local)
+# 3. Correctifs de bugs et alignement (Fix protocol/config mismatches)
+echo "Applying fixes to hw_sim and kiwi_hw_control..."
+
+# Fix typo: decoy_delay -> decoy_fiber_delay in hw_sim
+if [ -f "hw_sim/configs/src/ipc/mod.rs" ]; then
+    sed -i 's/decoy_delay\\t100/decoy_fiber_delay\\t100/g' hw_sim/configs/src/ipc/mod.rs
+    echo "Fixed decoy_delay typo in hw_sim/configs/src/ipc/mod.rs"
+fi
+
+# Align BATCHSIZE in kiwi_hw_control/gc to 1024
+if [ -f "kiwi_hw_control/gc/src/hw.rs" ]; then
+    sed -i 's/pub const BATCHSIZE: usize = 256;/pub const BATCHSIZE: usize = 1024;/g' kiwi_hw_control/gc/src/hw.rs
+    echo "Aligned BATCHSIZE in kiwi_hw_control/gc/src/hw.rs to 1024"
+fi
+
+# 4. Patch Cargo pour hw_sim (rediriger SSH vers le local)
 echo "Redirecting hw_sim dependencies to local kiwi_hw_control..."
 if [ -f "hw_sim/Cargo.toml" ]; then
-    # On remplace la ligne git ssh par un chemin local
     sed -i 's|gc = { git = "ssh://git@github.com/Veriqloud/kiwi_hw_control.git", branch = "master" }|gc = { path = "../kiwi_hw_control/gc" }|' hw_sim/Cargo.toml
-    
-    # On supprime le Cargo.lock pour forcer Cargo à recalculer les dépendances avec le chemin local
     rm -f hw_sim/Cargo.lock
     echo "Dependency redirected in hw_sim/Cargo.toml and Cargo.lock removed."
 fi
 
-# 4. Setup Python avec uv et venv
+# 5. Setup Python avec uv et venv
 echo "Setting up Python virtual environment with uv..."
 [ ! -d ".venv" ] && uv venv
 uv pip install numpy scipy pandas ldpc
 
-# 5. Compilation Rust
+# 6. Compilation Rust
 echo "Compiling hw_sim..."
 (cd hw_sim && cargo build --release)
 
 echo "Compiling kiwi_hw_control/gc (alice and bob binaries)..."
 (cd kiwi_hw_control/gc && cargo build --release)
 
-# 6. Préparation logs
+# 7. Préparation logs
 mkdir -p applications_on_qline/Q_oblivious_transfer/log
 
 echo "Setup complete."
