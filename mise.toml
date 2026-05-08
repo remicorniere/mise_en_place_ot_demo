@@ -17,6 +17,15 @@ set -e
 """
 
 [tasks.demo]
-description = "Launch the OT demo in Zellij"
+description = "Launch the OT demo in Zellij (no config change)"
 depends = ["setup"]
 run = "zellij --layout demo-layout.kdl"
+
+[tasks.demo_debug]
+description = "Launch the OT demo in Zellij with Debug logs"
+depends = ["setup"]
+run = """
+#!/bin/bash
+./scripts/set_log_level.sh Debug
+zellij --layout demo-layout.kdl
+"""
