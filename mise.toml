@@ -4,6 +4,11 @@ python = "3.12"
 zellij = "0.44.2"
 uv = "latest"
 
+[env]
+# Activation automatique du venv Python dès l'entrée dans le dossier
+# Cela permet de lancer 'python script.py' directement avec les dépendances (numpy, etc.)
+_.python.venv = ".venv"
+
 [tasks.setup]
 description = "Complete environment setup"
 run = """
