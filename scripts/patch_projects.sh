@@ -9,10 +9,14 @@ if [ -f "hw_sim/configs/src/ipc/mod.rs" ]; then
     echo "Fixed decoy_delay typo in hw_sim."
 fi
 
-# 2. Align BATCHSIZE in gc
+# 2. Align BATCHSIZE in gc and qber
 if [ -f "kiwi_hw_control/gc/src/hw.rs" ]; then
     sed -i 's/pub const BATCHSIZE: usize = 256;/pub const BATCHSIZE: usize = 1024;/g' kiwi_hw_control/gc/src/hw.rs
     echo "Aligned BATCHSIZE in kiwi_hw_control/gc."
+fi
+if [ -f "kiwi_hw_control/qber/src/lib.rs" ]; then
+    sed -i 's/pub const BATCHSIZE: usize = 256;/pub const BATCHSIZE: usize = 1024;/g' kiwi_hw_control/qber/src/lib.rs
+    echo "Aligned BATCHSIZE in kiwi_hw_control/qber."
 fi
 
 # 3. Redirect Cargo dependencies to local path

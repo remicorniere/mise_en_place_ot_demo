@@ -8,4 +8,7 @@ echo "Building hw_sim..."
 echo "Building kiwi_hw_control/gc..."
 (cd kiwi_hw_control/gc && cargo build --release)
 
+echo "Building kiwi_hw_control/qber..."
+(cd kiwi_hw_control/qber && cargo build --release)
+
 echo "Compilation complete."

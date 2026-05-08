@@ -1,0 +1,45 @@
+layout {
+    default_tab_template {
+        pane size=1 borderless=true {
+            plugin location="zellij:tab-bar"
+        }
+        children
+        pane size=2 borderless=true {
+            plugin location="zellij:status-bar"
+        }
+    }
+    tab name="Demo QBER" {
+        pane split_direction="vertical" {
+            pane split_direction="horizontal" {
+                pane name="Sim Alice" {
+                    command "bash"
+                    args "-c" "echo 'Starting Sim Alice...'; hw_sim/target/release/simulator --config-path hw_sim/config_files/alice/hw_sim_config.json"
+                }
+                pane name="Sim Bob" {
+                    command "bash"
+                    args "-c" "sleep 1; echo 'Starting Sim Bob...'; hw_sim/target/release/simulator --config-path hw_sim/config_files/bob/hw_sim_config.json"
+                }
+            }
+            pane split_direction="horizontal" {
+                pane name="GC Alice" {
+                    command "bash"
+                    args "-c" "sleep 2; echo 'Starting GC Alice...'; kiwi_hw_control/gc/target/release/alice -c hw_sim/config_files/alice/gc_config.json"
+                }
+                pane name="GC Bob" {
+                    command "bash"
+                    args "-c" "sleep 3; echo 'Starting GC Bob...'; kiwi_hw_control/gc/target/release/bob -c hw_sim/config_files/bob/gc_config.json"
+                }
+            }
+            pane split_direction="horizontal" {
+                pane name="QBER Bob" {
+                    command "bash"
+                    args "-c" "sleep 4; echo 'Starting QBER Bob...'; kiwi_hw_control/qber/target/release/bob -c hw_sim/config_files/bob/qber_config.json"
+                }
+                pane name="QBER Alice" {
+                    command "bash"
+                    args "-c" "sleep 5; echo 'Starting QBER Alice...'; kiwi_hw_control/qber/target/release/alice -c hw_sim/config_files/alice/qber_config.json 6400"
+                }
+            }
+        }
+    }
+}

@@ -34,3 +34,8 @@ run = """
 ./scripts/set_log_level.sh Debug
 zellij --layout demo-layout.kdl
 """
+
+[tasks.demo_qber]
+description = "Launch the QBER demo in Zellij"
+depends = ["setup"]
+run = "zellij --layout qber-layout.kdl"

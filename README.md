@@ -33,15 +33,19 @@ eval "$(mise activate zsh)"
    mise run setup
    ```
 
-2. **Launch the demo**:
-   This opens a Zellij session with all components starting in order (Simulator -> GC -> OT App) with a 1-second delay between each.
+3. **Launch the demo**:
+   This opens a Zellij session with all components starting in order (Simulator -> GC -> OT/QBER App) with a 1-second delay between each.
    ```bash
-   # Normal run (Error logs only)
+   # Normal OT run (Error logs only)
    mise demo
 
-   # Debug run (Detailed logs in all panes)
+   # OT run with Debug logs
    mise demo_debug
+
+   # QBER demo run
+   mise demo_qber
    ```
+
 
 ## Manual Usage & Development
 
