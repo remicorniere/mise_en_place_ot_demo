@@ -29,5 +29,9 @@ if [ -f "applications_on_qline/Q_oblivious_transfer/client_run.py" ]; then
     echo "Fixed UnboundLocalError in applications_on_qline/Q_oblivious_transfer/client_run.py"
 fi
 
-# 5. Create log directory
+# 5. Set log levels to Debug in all config files
+echo "Setting log_level to Debug in config files..."
+find hw_sim/config_files -name "*.json" -exec sed -i 's/"log_level": "Error"/"log_level": "Debug"/g' {} +
+
+# 6. Create log directory
 mkdir -p applications_on_qline/Q_oblivious_transfer/log
